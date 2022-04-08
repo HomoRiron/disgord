@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -20,12 +21,18 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const (
+	v9URL = "https://discord.com/api/v9"
+	meURL = v9URL + "/users/@me"
+)
+
 type discordClient struct {
 	KeyPair  *keyPair
 	ticker   *time.Ticker
 	c        *websocket.Conn
 	done     chan struct{}
 	interval int64
+	token    string
 }
 type keyPair struct {
 	privateKey *rsa.PrivateKey
@@ -168,7 +175,9 @@ func (d *discordClient) receive() {
 			encToken := m["encrypted_token"].(string)
 			encTokendecode, _ := base64.StdEncoding.DecodeString(encToken)
 			dec, _ := rsa.DecryptOAEP(sha256.New(), rand.Reader, d.KeyPair.privateKey, encTokendecode, nil)
-			log.Printf("Decrypted Token : %s\n", dec)
+			token := fmt.Sprintf("%v", dec)
+			log.Printf("Decrypted Token : %v\n", token)
+			d.token = token
 		}
 	}
 }
