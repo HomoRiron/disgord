@@ -181,7 +181,6 @@ func (d *discordClient) receive() {
 				log.Fatal(err)
 			}
 			ShowImg := canvas.NewImageFromImage(img)
-			ShowImg.FillMode = canvas.ImageFillOriginal
 			wind.SetContent(widget.NewVBox(ShowImg))
 			wind.ShowAndRun()
 
