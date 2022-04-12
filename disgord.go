@@ -120,7 +120,7 @@ func (d *discordClient) receive() {
 		switch m["op"] {
 		case "hello":
 			d.interval = int64(m["heartbeat_interval"].(float64))
-			d.ticker = time.NewTicker(time.Duration(d.interval) * time.Millisecond)
+			d.ticker = time.NewTicker(time.Duration(d.interval))
 			type initJson struct {
 				Op        string `json:"op"`
 				EncPubKey string `json:"encoded_public_key"`
