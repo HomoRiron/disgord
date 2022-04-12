@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"image/png"
 	"log"
 	"net/http"
 	"net/url"
@@ -18,8 +17,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/boombuler/barcode"
-	"github.com/boombuler/barcode/qr"
 	"github.com/gorilla/websocket"
 )
 
@@ -162,11 +159,7 @@ func (d *discordClient) receive() {
 		case "pending_remote_init":
 			fingerPrint := m["fingerprint"].(string)
 			authURL := "https://discord.com/ra/" + fingerPrint
-			f, _ := os.Create("qr.png")
-			qrCode, _ := qr.Encode(authURL, qr.M, qr.Auto)
-			qrCode, _ = barcode.Scale(qrCode, 200, 200)
-			png.Encode(f, qrCode)
-			log.Println("QR CODE CREATED")
+			log.Println(authURL)
 
 		case "pending_finish":
 			encUser := m["encrypted_user_payload"].(string)
