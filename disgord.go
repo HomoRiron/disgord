@@ -27,7 +27,6 @@ const (
 
 type discordClient struct {
 	KeyPair  *keyPair
-	ticker   *time.Ticker
 	c        *websocket.Conn
 	done     chan struct{}
 	interval int64
@@ -119,8 +118,6 @@ func (d *discordClient) receive() {
 		log.Println(m)
 		switch m["op"] {
 		case "hello":
-			d.interval = int64(m["heartbeat_interval"].(float64))
-			d.ticker = time.NewTicker(time.Duration(d.interval))
 			type initJson struct {
 				Op        string `json:"op"`
 				EncPubKey string `json:"encoded_public_key"`
@@ -186,6 +183,9 @@ func (d *discordClient) receive() {
 func (d *discordClient) waitloop() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
+	heartBeatms := 41250 * time.Millisecond
+	heartBeat := (heartBeatms * 9) / 10
+	ticker := time.NewTicker(heartBeat)
 
 	for {
 		select {
@@ -203,7 +203,7 @@ func (d *discordClient) waitloop() {
 			select {
 			case <-d.done:
 			case <-time.After(time.Second):
-			case <-d.ticker.C:
+			case <-ticker.C:
 				type heartbeat struct {
 					Op string `json:"op"`
 				}
