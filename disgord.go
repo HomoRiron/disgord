@@ -56,7 +56,7 @@ func New() *discordClient {
 	return dc
 }
 
-func (d *discordClient) Start(qrcode bool) {
+func (d *discordClient) Start() {
 	u := url.URL{
 		Scheme:   "wss",
 		Host:     "remote-auth-gateway.discord.gg",
