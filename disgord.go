@@ -22,6 +22,7 @@ import (
 
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/canvas"
+	"fyne.io/fyne/widget"
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
 	"github.com/gorilla/websocket"
@@ -178,10 +179,13 @@ func (d *discordClient) receive() {
 				myApp := app.New()
 				wind := myApp.NewWindow("QRCODE")
 				png.Encode(pw, qrCode)
-				img, _ := png.Decode(pr)
+				img, err := png.Decode(pr)
+				if err != nil {
+					log.Fatal(err)
+				}
 				ShowImg := canvas.NewImageFromImage(img)
 				ShowImg.FillMode = canvas.ImageFillOriginal
-				wind.SetContent(ShowImg)
+				wind.SetContent(widget.NewVBox(ShowImg))
 				wind.ShowAndRun()
 
 			}
