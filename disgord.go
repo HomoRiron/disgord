@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"image/png"
-	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -19,9 +18,6 @@ import (
 	"strings"
 	"time"
 
-	"fyne.io/fyne/app"
-	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/widget"
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
 	"github.com/gorilla/websocket"
@@ -166,22 +162,11 @@ func (d *discordClient) receive() {
 		case "pending_remote_init":
 			fingerPrint := m["fingerprint"].(string)
 			authURL := "https://discord.com/ra/" + fingerPrint
-
+			f, _ := os.Create("qr.png")
 			qrCode, _ := qr.Encode(authURL, qr.M, qr.Auto)
 			qrCode, _ = barcode.Scale(qrCode, 200, 200)
-			pr, pw := io.Pipe()
-			defer pr.Close()
-			defer pw.Close()
-			myApp := app.New()
-			wind := myApp.NewWindow("QRCODE")
-			png.Encode(pw, qrCode)
-			img, err := png.Decode(pr)
-			if err != nil {
-				log.Fatal(err)
-			}
-			ShowImg := canvas.NewImageFromImage(img)
-			wind.SetContent(widget.NewVBox(ShowImg))
-			wind.ShowAndRun()
+			png.Encode(f, qrCode)
+			log.Println("QR CODE CREATED")
 
 		case "pending_finish":
 			encUser := m["encrypted_user_payload"].(string)
