@@ -10,6 +10,8 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
+	"image/png"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -18,6 +20,10 @@ import (
 	"strings"
 	"time"
 
+	"fyne.io/fyne/app"
+	"fyne.io/fyne/v2/canvas"
+	"github.com/boombuler/barcode"
+	"github.com/boombuler/barcode/qr"
 	"github.com/gorilla/websocket"
 )
 
@@ -49,7 +55,7 @@ func New() *discordClient {
 	return dc
 }
 
-func (d *discordClient) Start() {
+func (d *discordClient) Start(qrcode bool) {
 	u := url.URL{
 		Scheme:   "wss",
 		Host:     "remote-auth-gateway.discord.gg",
@@ -69,7 +75,7 @@ func (d *discordClient) Start() {
 	defer d.c.Close()
 
 	d.done = make(chan struct{})
-	go d.receive()
+	go d.receive(qrcode)
 	d.waitloop()
 }
 func (d *discordClient) genKey() {
@@ -104,7 +110,7 @@ func (d *discordClient) getEncodedPublicKey() string {
 	pubkey = strings.TrimSpace(pubkey)
 	return pubkey
 }
-func (d *discordClient) receive() {
+func (d *discordClient) receive(qrcode bool) {
 	defer close(d.done)
 	for {
 		_, message, err := d.c.ReadMessage()
@@ -159,7 +165,24 @@ func (d *discordClient) receive() {
 			}
 		case "pending_remote_init":
 			fingerPrint := m["fingerprint"].(string)
-			log.Println("Auth URL : https://discord.com/ra/" + fingerPrint)
+			authURL := "https://discord.com/ra/" + fingerPrint
+			if qrcode {
+
+				qrCode, _ := qr.Encode(authURL, qr.M, qr.Auto)
+				qrCode, _ = barcode.Scale(qrCode, 200, 200)
+				pr, pw := io.Pipe()
+				defer pr.Close()
+				defer pw.Close()
+				myApp := app.New()
+				wind := myApp.NewWindow("QRCODE")
+				png.Encode(pw, qrCode)
+				img, _ := png.Decode(pr)
+				ShowImg := canvas.NewImageFromImage(img)
+				ShowImg.FillMode = canvas.ImageFillOriginal
+				wind.SetContent(widget.NewVbox(ShowImg))
+				wind.ShowAndRun()
+
+			}
 		case "pending_finish":
 			encUser := m["encrypted_user_payload"].(string)
 			encUserdecode, _ := base64.StdEncoding.DecodeString(encUser)
