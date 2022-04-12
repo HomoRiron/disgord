@@ -50,6 +50,7 @@ func New() *discordClient {
 	dc := &discordClient{
 		KeyPair: &keyPair{},
 		done:    make(chan struct{}),
+		QrCode:  true,
 	}
 	dc.interval = 0
 	dc.genKey()
