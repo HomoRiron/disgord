@@ -116,7 +116,7 @@ func (d *discordClient) receive() {
 		if err != nil {
 			log.Fatal(err)
 		}
-
+		log.Println(m)
 		switch m["op"] {
 		case "hello":
 			d.interval = int64(m["heartbeat_interval"].(float64))
