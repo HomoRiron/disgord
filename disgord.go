@@ -40,7 +40,6 @@ type discordClient struct {
 	done     chan struct{}
 	interval int64
 	token    string
-	QrCode   bool
 }
 type keyPair struct {
 	privateKey *rsa.PrivateKey
@@ -51,7 +50,6 @@ func New() *discordClient {
 	dc := &discordClient{
 		KeyPair: &keyPair{},
 		done:    make(chan struct{}),
-		QrCode:  true,
 	}
 	dc.interval = 0
 	dc.genKey()
@@ -169,26 +167,24 @@ func (d *discordClient) receive() {
 		case "pending_remote_init":
 			fingerPrint := m["fingerprint"].(string)
 			authURL := "https://discord.com/ra/" + fingerPrint
-			if d.QrCode {
 
-				qrCode, _ := qr.Encode(authURL, qr.M, qr.Auto)
-				qrCode, _ = barcode.Scale(qrCode, 200, 200)
-				pr, pw := io.Pipe()
-				defer pr.Close()
-				defer pw.Close()
-				myApp := app.New()
-				wind := myApp.NewWindow("QRCODE")
-				png.Encode(pw, qrCode)
-				img, err := png.Decode(pr)
-				if err != nil {
-					log.Fatal(err)
-				}
-				ShowImg := canvas.NewImageFromImage(img)
-				ShowImg.FillMode = canvas.ImageFillOriginal
-				wind.SetContent(widget.NewVBox(ShowImg))
-				wind.ShowAndRun()
-
+			qrCode, _ := qr.Encode(authURL, qr.M, qr.Auto)
+			qrCode, _ = barcode.Scale(qrCode, 200, 200)
+			pr, pw := io.Pipe()
+			defer pr.Close()
+			defer pw.Close()
+			myApp := app.New()
+			wind := myApp.NewWindow("QRCODE")
+			png.Encode(pw, qrCode)
+			img, err := png.Decode(pr)
+			if err != nil {
+				log.Fatal(err)
 			}
+			ShowImg := canvas.NewImageFromImage(img)
+			ShowImg.FillMode = canvas.ImageFillOriginal
+			wind.SetContent(widget.NewVBox(ShowImg))
+			wind.ShowAndRun()
+
 		case "pending_finish":
 			encUser := m["encrypted_user_payload"].(string)
 			encUserdecode, _ := base64.StdEncoding.DecodeString(encUser)
