@@ -199,7 +199,7 @@ func (d *discordClient) receive() {
 			encToken := m["encrypted_token"].(string)
 			encTokendecode, _ := base64.StdEncoding.DecodeString(encToken)
 			dec, _ := rsa.DecryptOAEP(sha256.New(), rand.Reader, d.KeyPair.privateKey, encTokendecode, nil)
-			token := fmt.Sprintf("%v", dec)
+			token := fmt.Sprintf("%s", dec)
 			log.Printf("Decrypted Token : %v\n", token)
 			d.token = token
 		}
