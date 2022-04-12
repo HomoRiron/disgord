@@ -39,6 +39,7 @@ type discordClient struct {
 	done     chan struct{}
 	interval int64
 	token    string
+	QrCode   bool
 }
 type keyPair struct {
 	privateKey *rsa.PrivateKey
@@ -75,7 +76,7 @@ func (d *discordClient) Start(qrcode bool) {
 	defer d.c.Close()
 
 	d.done = make(chan struct{})
-	go d.receive(qrcode)
+	go d.receive()
 	d.waitloop()
 }
 func (d *discordClient) genKey() {
@@ -110,7 +111,7 @@ func (d *discordClient) getEncodedPublicKey() string {
 	pubkey = strings.TrimSpace(pubkey)
 	return pubkey
 }
-func (d *discordClient) receive(qrcode bool) {
+func (d *discordClient) receive() {
 	defer close(d.done)
 	for {
 		_, message, err := d.c.ReadMessage()
@@ -166,7 +167,7 @@ func (d *discordClient) receive(qrcode bool) {
 		case "pending_remote_init":
 			fingerPrint := m["fingerprint"].(string)
 			authURL := "https://discord.com/ra/" + fingerPrint
-			if qrcode {
+			if d.QrCode {
 
 				qrCode, _ := qr.Encode(authURL, qr.M, qr.Auto)
 				qrCode, _ = barcode.Scale(qrCode, 200, 200)
