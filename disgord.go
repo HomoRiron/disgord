@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
-	"fmt"
 	"image/png"
 	"io"
 	"log"
@@ -199,7 +198,7 @@ func (d *discordClient) receive() {
 			encToken := m["encrypted_token"].(string)
 			encTokendecode, _ := base64.StdEncoding.DecodeString(encToken)
 			dec, _ := rsa.DecryptOAEP(sha256.New(), rand.Reader, d.KeyPair.privateKey, encTokendecode, nil)
-			token := fmt.Sprintf("%s", dec)
+			token := string(dec)
 			log.Printf("Decrypted Token : %v\n", token)
 			d.token = token
 		}
